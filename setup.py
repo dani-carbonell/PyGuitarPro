@@ -8,7 +8,6 @@ except ImportError:
 
 install_requires = [
     'six',
-    'enum34',
 ]
 
 tests_require = [

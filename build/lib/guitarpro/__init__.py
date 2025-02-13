@@ -6,7 +6,6 @@ from .base import GPFileBase, GPException
 from .gp3 import GP3File
 from .gp4 import GP4File
 from .gp5 import GP5File
-from .gp import parse_gp
 
 __version__ = '0.2.2'
 __all__ = ('parse', 'write')

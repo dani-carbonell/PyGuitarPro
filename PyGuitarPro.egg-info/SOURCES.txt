@@ -1,0 +1,62 @@
+.pylintrc
+CHANGES.rst
+LICENSE
+MANIFEST.in
+README.rst
+setup.py
+PyGuitarPro.egg-info/PKG-INFO
+PyGuitarPro.egg-info/SOURCES.txt
+PyGuitarPro.egg-info/dependency_links.txt
+PyGuitarPro.egg-info/not-zip-safe
+PyGuitarPro.egg-info/requires.txt
+PyGuitarPro.egg-info/top_level.txt
+examples/gp8_example.py
+examples/gpx_example.py
+examples/transpose.py
+guitarpro/__init__.py
+guitarpro/base.py
+guitarpro/gp.py
+guitarpro/gp3.py
+guitarpro/gp4.py
+guitarpro/gp5.py
+guitarpro/gpx.py
+guitarpro/models.py
+guitarpro/utils.py
+tests/CarpeDiem - Dumbass Knocking His Head on the Wall.gp3
+tests/CarpeDiem - I Ching.gp3
+tests/CarpeDiem - Ink.gp4
+tests/Chords.gp3
+tests/Chords.gp4
+tests/Chords.gp5
+tests/Deep Purple - Love Child.gp5
+tests/Demo v5.gp5
+tests/Directions.gp5
+tests/Duration.gp3
+tests/Effects.gp3
+tests/Effects.gp4
+tests/Effects.gp5
+tests/Ephemera - Dust for Tears.gp3
+tests/Ephemera - Dust for Tears.gp5
+tests/Harmonics.gp3
+tests/Harmonics.gp4
+tests/Harmonics.gp5
+tests/Key.gp4
+tests/Key.gp5
+tests/Mastodon - Curl of the Burl.gp5
+tests/Mastodon - Ghost of Karelia.gp5
+tests/No Wah.gp5
+tests/Queens of the Stone Age - I Appear Missing.gpx
+tests/Queens of the Stone Age - My God Is the Sun.gpx
+tests/RSE.gp5
+tests/Repeat.gp4
+tests/Repeat.gp5
+tests/Slides.gp4
+tests/Slides.gp5
+tests/Unknown-m.gp5
+tests/Unknown.gp5
+tests/Vibrato.gp4
+tests/Voices.gp5
+tests/Wah-m.gp5
+tests/Wah.gp5
+tests/__init__.py
+tests/__main__.py
