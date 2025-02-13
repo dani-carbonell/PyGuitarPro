@@ -79,12 +79,18 @@ def parse_gp(file_path):
                         else:
                             song.tempo = 120
 
-                    # Extract track information: try <Tracks> in <Score>; if not present, use MasterTrack/Tracks
+                    # Extract track information: try <Tracks> in <Score>; if not present, use the global <Tracks> element
                     tracks_node = score_node.find('Tracks')
+                    if tracks_node is None or len(tracks_node) == 0:
+                        # Fallback: look for the global <Tracks> element on the root
+                        tracks_node = root.find('Tracks')
                     if tracks_node is not None and len(tracks_node):
                         for track_node in tracks_node:
-                            track = Track()
+                            # Extract the track's id from the XML attribute and pass it as header
+                            header = track_node.get("id")
+                            track = Track(header=header)
                             name_node = track_node.find('Name')
+                            # Use the track's <Name> element; for id=0 it will read "Clean Guitar" if present in XML
                             track.name = name_node.text.strip() if name_node is not None and name_node.text else "Unnamed Track"
                             strings_node = track_node.find('Strings')
                             if strings_node is not None:
