@@ -1,9 +1,21 @@
 from guitarpro.gp import parse_gp
 import os
 
+def _get_finger_name(finger_value):
+    """Convert finger value to human-readable name."""
+    finger_map = {
+        -1: "x",  # no finger specified
+        0: "T",   # thumb
+        1: "1",   # index
+        2: "2",   # middle
+        3: "3",   # ring
+        4: "4"    # pinky
+    }
+    return finger_map.get(finger_value, "?")
+
 def main():
     # Use the Funky.gp file which is GP8 format
-    file_path = os.path.join(os.path.dirname(__file__), "..", "guitarpro", "Funky.gp")
+    file_path = os.path.join(os.path.dirname(__file__), "..", "tests", "fin1.gp")
     print(f"Trying to open file: {file_path}")
 
     song = parse_gp(file_path)
@@ -22,21 +34,30 @@ def main():
             print(f"Tuning: {track.tuning}")
             print(f"Number of measures: {len(track.measures)}")
             
-            # Show first measure as example
+            # Show a maximum of 10 measures as example
             if track.measures:
-                measure = track.measures[0]
-                print(f"\nFirst measure:")
-                for voice in measure.voices:
-                    if voice.beats:  # Only process if there are beats
-                        for beat in voice.beats:
-                            if beat.notes:  # Only process if there are notes
-                                notes = [f"String {n.string}: fret {n.value}" for n in beat.notes]
-                                duration = f"1/{beat.duration.value}" if beat.duration else "?"
-                                print(f"Duration: {duration}, Notes: {notes}")
-                            else:
-                                print("Beat contains no notes")
-                    else:
-                        print("Voice contains no beats")
+                for measure in track.measures[:10]:
+                    print(f"\nMeasure {measure.number}:")
+                    if measure.timeSignature:
+                        print(f"Time Signature: {measure.timeSignature.numerator}/{measure.timeSignature.denominator.value}")
+                    if measure.tempo:
+                        print(f"Tempo: {measure.tempo.value} BPM")
+                    for voice in measure.voices:
+                        if voice.beats:  # Only process if there are beats
+                            for beat in voice.beats:
+                                if beat.notes:  # Only process if there are notes
+                                    notes = [
+                                        f"String {6 - n.string}: fret {n.value} "
+                                        f"F:{_get_finger_name(n.effect.leftHandFinger)} "
+                                        f"{' PM' if n.effect.palmMute else ''}" 
+                                        for n in beat.notes
+                                    ]
+                                    duration = f"1/{beat.duration.value}" if beat.duration else "?"
+                                    print(f"Duration: {duration}, Notes: {notes}")
+                                else:
+                                    print("Beat contains no notes")
+                        else:
+                            print("Measure contains no voices")
     else:
         print("Failed to parse song")
 

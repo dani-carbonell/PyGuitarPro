@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 import datetime
 from .base import Song, Track, Measure, Voice, Beat, Note, MeasureHeader, Duration, Tempo, TimeSignature, KeySignature, MeasureClef, NoteType
 import os
+import tempfile
 
 __all__ = ['parse_gp']
 
@@ -21,19 +22,29 @@ def parse_gp(file_path):
             # Check if it's a directory or a file
             if os.path.isdir(file_path):
                 gpif_path = os.path.join(file_path, 'Content', 'score.gpif')
+                with open(gpif_path, 'r') as f:
+                    gpif_content = f.read()
             else:
-                # Assume it's a file in the same directory
-                base_path = os.path.dirname(file_path)
-                file_name = os.path.basename(file_path)
-                dir_name = os.path.splitext(file_name)[0]
-                gpif_path = os.path.join(base_path, dir_name, 'Content', 'score.gpif')
+                # Try to open it as a zip file
+                try:
+                    with zipfile.ZipFile(file_path, 'r') as zip_ref:
+                        gpif_content = zip_ref.read('Content/score.gpif').decode('utf-8')
+                except zipfile.BadZipFile:
+                    # If not a zip file, try the old directory approach
+                    base_path = os.path.dirname(file_path)
+                    file_name = os.path.basename(file_path)
+                    dir_name = os.path.splitext(file_name)[0]
+                    gpif_path = os.path.join(base_path, dir_name, 'Content', 'score.gpif')
+                    with open(gpif_path, 'r') as f:
+                        gpif_content = f.read()
         else:
-            gpif_path = file_path
-        _debug(f"Trying to parse GPIF file: {gpif_path}")
+            with open(file_path, 'r') as f:
+                gpif_content = f.read()
 
-        # Parse the GPIF file
-        tree = ET.parse(gpif_path)
-        root = tree.getroot()
+        _debug(f"Successfully read GPIF content")
+
+        # Parse the GPIF content
+        root = ET.fromstring(gpif_content)
         _debug("Successfully parsed XML")
 
         # Create a song
@@ -94,8 +105,28 @@ def parse_gp(file_path):
             if master_bars is not None:
                 master_bar_refs = master_bars.findall('MasterBar')
                 for master_bar_idx, master_bar in enumerate(master_bar_refs):
-                    # Create a measure
-                    measure = Measure(header=None)  # We'll set the header later
+                    # Create a measure header
+                    header = MeasureHeader()
+                    header.number = master_bar_idx + 1  # 1-based measure numbers
+                    
+                    # Parse time signature
+                    time_sig = master_bar.find('TimeSignature')
+                    if time_sig is not None:
+                        numerator = time_sig.find('Numerator')
+                        denominator = time_sig.find('Denominator')
+                        if numerator is not None and denominator is not None:
+                            header.timeSignature = TimeSignature()
+                            header.timeSignature.numerator = int(numerator.text)
+                            header.timeSignature.denominator.value = int(denominator.text)
+                    
+                    # Parse tempo
+                    tempo_elem = master_bar.find('Tempo')
+                    if tempo_elem is not None:
+                        header.tempo = Tempo()
+                        header.tempo.value = int(float(tempo_elem.text))
+                    
+                    # Create a measure with the header
+                    measure = Measure(header=header)
                     
                     # Get the bar references for this track
                     bars_text = master_bar.findtext('Bars', '').strip()
@@ -139,6 +170,9 @@ def parse_gp(file_path):
                                                                         note = Note()
                                                                         note.string = notes_by_id[note_id]['string']
                                                                         note.value = notes_by_id[note_id]['fret']
+                                                                        note.effect.leftHandFinger = notes_by_id[note_id]['left_finger']
+                                                                        note.effect.rightHandFinger = notes_by_id[note_id]['right_finger']
+                                                                        note.effect.palmMute = notes_by_id[note_id]['palm_mute']
                                                                         beat.notes.append(note)
                                                             
                                                             voice.beats.append(beat)
@@ -161,10 +195,27 @@ def _build_notes_lookup(root):
         note_id = note_elem.get('id')
         string_elem = note_elem.find('.//Property[@name="String"]/String')
         fret_elem = note_elem.find('.//Property[@name="Fret"]/Fret')
+        left_finger_elem = note_elem.find('LeftFingering')
+        right_finger_elem = note_elem.find('RightFingering')
+        palm_mute_elem = note_elem.find('.//Property[@name="PalmMuted"]/Enable')
+        
+        # Convert letter-based fingering to numbers
+        finger_map = {
+            'T': 0,  # Thumb
+            'I': 1,  # Index
+            'M': 2,  # Middle
+            'C': 3,  # Ring (Corazon)
+            'A': 4,  # Pinky (Anular)
+            None: -1  # No fingering
+        }
+        
         if string_elem is not None and fret_elem is not None:
             notes_by_id[note_id] = {
                 'string': int(string_elem.text),  # 1-based
-                'fret': int(fret_elem.text)
+                'fret': int(fret_elem.text),
+                'left_finger': finger_map.get(left_finger_elem.text if left_finger_elem is not None else None, -1),
+                'right_finger': finger_map.get(right_finger_elem.text if right_finger_elem is not None else None, -1),
+                'palm_mute': palm_mute_elem is not None
             }
     return notes_by_id
 
