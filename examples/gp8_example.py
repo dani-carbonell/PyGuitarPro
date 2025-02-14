@@ -48,8 +48,9 @@ def main():
                                 if beat.notes:  # Only process if there are notes
                                     notes = [
                                         f"String {6 - n.string}: fret {n.value} "
-                                        f"F:{_get_finger_name(n.effect.leftHandFinger)} "
-                                        f"{' PM' if n.effect.palmMute else ''}" 
+                                        f"F:{_get_finger_name(n.leftHandFinger)} "
+                                        f"{' PM' if n.effect.palmMute else ''}"
+                                        f"{' Bend ' + str(n.effect.bend.value/100) if n.effect.bend else ''}" 
                                         for n in beat.notes
                                     ]
                                     duration = f"1/{beat.duration.value}" if beat.duration else "?"
