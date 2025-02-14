@@ -46,13 +46,16 @@ def main():
                         if voice.beats:  # Only process if there are beats
                             for beat in voice.beats:
                                 if beat.notes:  # Only process if there are notes
-                                    notes = [
-                                        f"String {6 - n.string}: fret {n.value} "
-                                        f"F:{_get_finger_name(n.leftHandFinger)} "
-                                        f"{' PM' if n.effect.palmMute else ''}"
-                                        f"{' Bend ' + str(n.effect.bend.value/100) if n.effect.bend else ''}" 
-                                        for n in beat.notes
-                                    ]
+                                    notes = []
+                                    for n in beat.notes:
+                                        note_str = f'String {n.string}: fret {n.value} F:{_get_finger_name(n.leftHandFinger)}'
+                                        if n.effect.palmMute:
+                                            note_str += ' PM'
+                                        if n.isDead:
+                                            note_str += ' X'
+                                        if n.effect.bend:
+                                            note_str += f' Bend {n.effect.bend.value/100:.1f}'
+                                        notes.append(note_str)
                                     duration = f"1/{beat.duration.value}" if beat.duration else "?"
                                     print(f"Duration: {duration}, Notes: {notes}")
                                 else:
