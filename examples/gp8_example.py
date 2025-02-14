@@ -15,7 +15,7 @@ def _get_finger_name(finger_value):
 
 def main():
     # Use the Funky.gp file which is GP8 format
-    file_path = os.path.join(os.path.dirname(__file__), "..", "tests", "fin1.gp")
+    file_path = os.path.join(os.path.dirname(__file__), "..", "tests", "Effects.gp")
     print(f"Trying to open file: {file_path}")
 
     song = parse_gp(file_path)
@@ -52,7 +52,7 @@ def main():
                                         if n.effect.palmMute:
                                             note_str += ' PM'
                                         if n.isDead:
-                                            note_str += ' X'
+                                            note_str += ' Dead'
                                         if n.effect.bend:
                                             note_str += f' Bend {n.effect.bend.value/100:.1f}'
                                         notes.append(note_str)

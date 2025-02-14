@@ -159,13 +159,33 @@ def read_gpif(file_path):
     if album_elem is not None:
         song.album = album_elem.text if album_elem.text else ""
     
-    tempo_elem = root.find('.//Property[@name="Tempo"]/Number')
-    if tempo_elem is not None:
+    # Read tempo from MasterTrack section
+    tempo_elem = root.find('.//MasterTrack/Automations/Automation[Type="Tempo"]/Value')
+    if tempo_elem is not None and tempo_elem.text:
         try:
-            song.tempo = int(tempo_elem.text)
-        except (ValueError, TypeError):
-            logger.warning("Invalid tempo value found")
+            # The tempo value is stored as "103 2" format, we need just the first number
+            tempo_value = int(tempo_elem.text.split()[0])
+            song.tempo = tempo_value
+            # Store the tempo for use in measure headers
+            master_tempo = tempo_value
+        except (ValueError, TypeError, IndexError):
+            logger.warning("Invalid tempo value found in MasterTrack")
             song.tempo = 120  # Default tempo
+            master_tempo = 120
+    else:
+        # Fallback to looking in Property (old way)
+        tempo_elem = root.find('.//Property[@name="Tempo"]/Number')
+        if tempo_elem is not None:
+            try:
+                song.tempo = int(tempo_elem.text)
+                master_tempo = song.tempo
+            except (ValueError, TypeError):
+                logger.warning("Invalid tempo value found")
+                song.tempo = 120  # Default tempo
+                master_tempo = 120
+        else:
+            song.tempo = 120  # Default tempo
+            master_tempo = 120
 
     # Parse tracks
     track_count = 0
@@ -213,13 +233,8 @@ def read_gpif(file_path):
                     except ValueError:
                         logger.warning(f"Invalid time signature: {time_elem.text}")
             
-            # Parse tempo
-            tempo_elem = master_bar_elem.find('.//Property[@name="Tempo"]/Number')
-            if tempo_elem is not None and tempo_elem.text:
-                try:
-                    header.tempo.value = int(tempo_elem.text)
-                except ValueError:
-                    logger.warning(f"Invalid tempo value: {tempo_elem.text}")
+            # Parse tempo - use the master tempo we found earlier
+            header.tempo.value = master_tempo
             
             # Create measure with header
             measure = Measure(header=header)
