@@ -1,4 +1,4 @@
-include *.rst
+include *.md
 include .pylintrc
 include LICENSE
 include tests/*.gp?
